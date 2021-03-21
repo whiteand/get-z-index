@@ -1,15 +1,15 @@
-import { GetZIndex, Rules } from "./types";
+import { GetZIndex, Rules } from './types';
 
 function traverseAndThrowErrorIfLoop<T extends string>(
   lowerLayers: Partial<Record<T, T[]>>,
   layer: T,
-  parents: T[],
+  parents: T[]
 ) {
   const indexInParents = parents.indexOf(layer);
   if (indexInParents >= 0) {
     const loop = parents.slice(indexInParents);
     loop.push(layer);
-    const loopStr = loop.map((layer) => JSON.stringify(layer)).join(" > ");
+    const loopStr = loop.map(layer => JSON.stringify(layer)).join(' > ');
     const loopErrorMessage = `There is loop: ${loopStr}`;
     throw new Error(loopErrorMessage);
   }
@@ -28,7 +28,7 @@ function traverseAndThrowErrorIfLoop<T extends string>(
 
 function invariantHasNoLoops<T extends string>(
   layers: T[],
-  lowerLayers: Partial<Record<T, T[]>>,
+  lowerLayers: Partial<Record<T, T[]>>
 ) {
   for (let i = 0; i < layers.length; i++) {
     traverseAndThrowErrorIfLoop(lowerLayers, layers[i], []);
@@ -37,7 +37,7 @@ function invariantHasNoLoops<T extends string>(
 
 export function compile<T extends string>(
   rules: Rules<T>,
-  layerSizeDict: Partial<Record<T, number>> = {},
+  layerSizeDict: Partial<Record<T, number>> = {}
 ): GetZIndex<T> {
   const lowerLayers: Partial<Record<T, T[]>> = Object.create(null);
   const fullLayersSizeDict: Record<T, number> = Object.create(null);
@@ -47,15 +47,15 @@ export function compile<T extends string>(
     const rule = rules[i];
     const lower = rule[0];
     const upper = rule[1];
-    const lowers = lowerLayers[upper] as T[] || [];
+    const lowers = (lowerLayers[upper] as T[]) || [];
     lowers.push(lower);
     lowerLayers[upper] = lowers;
     if (fullLayersSizeDict[lower] == null) {
-      fullLayersSizeDict[lower] = layerSizeDict[lower] as number || 1;
+      fullLayersSizeDict[lower] = (layerSizeDict[lower] as number) || 1;
       layers.push(lower);
     }
     if (fullLayersSizeDict[upper] == null) {
-      fullLayersSizeDict[upper] = layerSizeDict[upper] as number || 1;
+      fullLayersSizeDict[upper] = (layerSizeDict[upper] as number) || 1;
       layers.push(upper);
     }
   }
@@ -77,22 +77,25 @@ export function compile<T extends string>(
       const zIndex = res[layerId];
       if (zIndex == null) {
         throw new Error(
-          "There is no layer with id: " + JSON.stringify(layerId),
+          'There is no layer with id: ' + JSON.stringify(layerId)
         );
       }
       const actualIndex = index || 0;
-      const layerSize = (fullLayersSizeDict[layerId] || 1);
+      const layerSize = fullLayersSizeDict[layerId] || 1;
       if (actualIndex >= layerSize) {
         throw new Error(
-          "Layer " + JSON.stringify(layerId) + " cannot contain more than " +
-            layerSize + " items",
+          'Layer ' +
+            JSON.stringify(layerId) +
+            ' cannot contain more than ' +
+            layerSize +
+            ' items'
         );
       }
       return zIndex + (index || 0);
     },
     {
       zIndexDict: res,
-    },
+    }
   );
 
   function getMinZIndex(layerId: T): number {
@@ -109,7 +112,7 @@ export function compile<T extends string>(
     for (let i = 0; i < lowers.length; i++) {
       const lower = lowers[i];
       const lowerMinZIndex = getMinZIndex(lower);
-      const lowerSize = (fullLayersSizeDict[lower] || 1);
+      const lowerSize = fullLayersSizeDict[lower] || 1;
       const minHigherThanLower = lowerMinZIndex + lowerSize;
       if (minHigherThanLower > maxRes) {
         maxRes = minHigherThanLower;
