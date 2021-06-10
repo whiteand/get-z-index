@@ -1,38 +1,88 @@
 import { GetZIndex, Rules } from './types';
 
-function traverseAndThrowErrorIfLoop<T extends string>(
-  lowerLayers: Partial<Record<T, T[]>>,
-  layer: T,
-  parents: T[]
-) {
-  const indexInParents = parents.indexOf(layer);
-  if (indexInParents >= 0) {
-    const loop = parents.slice(indexInParents);
-    loop.push(layer);
-    const loopStr = loop.map(layer => JSON.stringify(layer)).join(' > ');
-    const loopErrorMessage = `There is loop: ${loopStr}`;
-    throw new Error(loopErrorMessage);
-  }
-  const lowers = lowerLayers[layer] as T[] | undefined;
-
-  if (!lowers) return;
-
-  parents.push(layer);
-
-  for (let j = 0; j < lowers.length; j++) {
-    traverseAndThrowErrorIfLoop(lowerLayers, lowers[j], parents);
-  }
-
-  parents.pop();
+interface IVertex {
+  index: number;
+  lowLink: number;
+  onStack: boolean;
+  visited: boolean;
+  key: string;
+  successors: IVertex[];
 }
 
-function invariantHasNoLoops<T extends string>(
+function getLoopKeys<T extends string>(
   layers: T[],
   lowerLayers: Partial<Record<T, T[]>>
-) {
+): string[] | null {
+  const vertices: IVertex[] = [];
+  const verticesDict = Object.create(null);
   for (let i = 0; i < layers.length; i++) {
-    traverseAndThrowErrorIfLoop(lowerLayers, layers[i], []);
+    const vertex = {
+      index: -1,
+      lowLink: -1,
+      onStack: false,
+      visited: false,
+      successors: [],
+      key: layers[i],
+    };
+    verticesDict[layers[i]] = vertex;
+    vertices.push(vertex);
   }
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    const lowers = lowerLayers[layer];
+    if (!lowers) continue;
+    verticesDict[layer].successors = lowers.map(key => verticesDict[key]);
+  }
+  let index = 0;
+  const stack: IVertex[] = [];
+  const components: IVertex[][] = [];
+  function stronglyConnect(vertex: IVertex) {
+    vertex.index = index;
+    vertex.lowLink = index;
+    index++;
+    stack.push(vertex);
+    vertex.onStack = true;
+    for (let i = 0; i < vertex.successors.length; i++) {
+      const successor = vertex.successors[i];
+      if (successor.index < 0) {
+        stronglyConnect(successor);
+        vertex.lowLink = Math.min(vertex.lowLink, successor.lowLink);
+      } else if (successor.onStack) {
+        vertex.lowLink = Math.min(vertex.lowLink, successor.index);
+      }
+    }
+
+    if (vertex.lowLink === vertex.index) {
+      const scc: IVertex[] = [];
+      let w;
+      do {
+        w = stack.pop();
+        if (!w) break;
+        w.onStack = false;
+        scc.push(w);
+      } while (w !== vertex);
+
+      components.push(scc);
+    }
+  }
+  for (let i = 0; i < vertices.length; i++) {
+    if (vertices[i].index < 0) {
+      stronglyConnect(vertices[i]);
+    }
+  }
+  if (components.length !== layers.length) {
+    for (let i = 0; i < components.length; i++) {
+      const component = components[i];
+      if (component.length <= 1) continue;
+      const res: string[] = [];
+      for (let j = 0; j < component.length; j++) {
+        res.push(component[j].key);
+      }
+      return res;
+    }
+    return [];
+  }
+  return null;
 }
 
 export function compile<T extends string>(
@@ -61,7 +111,10 @@ export function compile<T extends string>(
   }
 
   if (__DEV__) {
-    invariantHasNoLoops(layers, lowerLayers);
+    const loopedKeys = getLoopKeys(layers, lowerLayers);
+    if (loopedKeys) {
+      throw new Error('There is a loop in rules: ' + loopedKeys.join('->'));
+    }
   }
 
   const res: Record<T, number> = Object.create(null) as any;
