@@ -31,7 +31,13 @@ function getLoopKeys<T extends string>(
     const layer = layers[i];
     const lowers = lowerLayers[layer];
     if (!lowers) continue;
-    verticesDict[layer].successors = lowers.map(key => verticesDict[key]);
+    for (let j = 0; j < lowers.length; j++) {
+      const lower = lowers[j];
+      if (lower === layer) {
+        return [layer];
+      }
+      verticesDict[layer].successors.push(verticesDict[lower]);
+    }
   }
   let index = 0;
   const stack: IVertex[] = [];
