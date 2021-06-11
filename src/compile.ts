@@ -93,11 +93,14 @@ function getLoopKeys<T extends string>(
 
 export function compile<T extends string>(
   rules: Rules<T>,
-  layerSizeDict: Partial<Record<T, number>> = {}
+  inputLayerSizeDict?: Partial<Record<T, number>> | null | undefined,
+  inputPredefinedZIndices?: Partial<Record<T, number>> | null | undefined
 ): GetZIndex<T> {
   const lowerLayers: Partial<Record<T, T[]>> = Object.create(null);
   const fullLayersSizeDict: Record<T, number> = Object.create(null);
   const layers: T[] = [];
+  const layerSizeDict = inputLayerSizeDict || Object.create(null);
+  const predefinedZIndices = inputPredefinedZIndices || Object.create(null);
 
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i];
@@ -123,7 +126,10 @@ export function compile<T extends string>(
     }
   }
 
-  const res: Record<T, number> = Object.create(null) as any;
+  const res: Record<T, number> = Object.assign(
+    Object.create(null),
+    predefinedZIndices
+  ) as any;
 
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];

@@ -63,4 +63,27 @@ getZIndex('modals', 2); // => 4
 getZIndex('notifications'); // => 5
 ```
 
+Also it's possible that sometimes someone else code controls z-index of the component. For example modals are from some library. And inside the library we have z-index equal to 1000. We can define it with usage of the last parameter - `predefinedZIndices`.
+
+```javascript
+const getZIndex = compile(
+  [
+    ['page', 'modal'],
+    ['modal', 'notification'],
+    ['notification', 'tooltips'],
+  ],
+  null,
+  { modal: 1000 }
+);
+```
+
+And we can use it:
+
+```javascript
+getZIndex('page'); // 0
+getZIndex('modal'); // 1000
+getZIndex('notification'); // 1001
+getZIndex('tooltips'); // 1002
+```
+
 Pretty much it! Use and enjoy!
