@@ -263,24 +263,24 @@ describe('error classes', (it) => {
 /**
  * Uncomment to check performance
  */
-// describe('compile performance', (it) => {
-//   it('compiles a large acyclic rule set within a tight budget', () => {
-//     const layerCount = 10000;
-//     const rules: [string, string][] = [];
-//     for (let i = 0; i < layerCount - 1; i++) {
-//       rules.push([`l${i}`, `l${i + 1}`]);
-//     }
-//     for (let i = 0; i < layerCount - 10; i += 3) {
-//       rules.push([`l${i}`, `l${i + 5}`]);
-//     }
+describe('compile performance', (it) => {
+  it('compiles a large acyclic rule set within a tight budget', () => {
+    const layerCount = 10000;
+    const rules: [string, string][] = [];
+    for (let i = 0; i < layerCount - 1; i++) {
+      rules.push([`l${i}`, `l${i + 1}`]);
+    }
+    for (let i = 0; i < layerCount - 10; i += 3) {
+      rules.push([`l${i}`, `l${i + 5}`]);
+    }
 
-//     compile(rules); // warmup
+    compile(rules); // warmup
 
-//     const startedAt = performance.now();
-//     const getZIndex = compile(rules);
-//     const elapsedMs = performance.now() - startedAt;
+    const startedAt = performance.now();
+    const getZIndex = compile(rules);
+    const elapsedMs = performance.now() - startedAt;
 
-//     expect(getZIndex(`l${layerCount - 1}`)).toBeGreaterThan(0);
-//     expect(elapsedMs).toBeLessThan(0);
-//   });
-// });
+    expect(getZIndex(`l${layerCount - 1}`)).toBeGreaterThan(0);
+    expect(elapsedMs).toBeLessThan(0);
+  });
+});

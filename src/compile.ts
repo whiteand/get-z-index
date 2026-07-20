@@ -83,31 +83,43 @@ function rememberLayer<T extends string>(
   return newInd;
 }
 
-function findLoop(adj: number[][], start: number): number[] {
-  const currentPath = [start];
+function findLoop(
+  adj: number[][],
+  start: number,
+  currentPath: Uint32Array
+): Uint32Array {
+  let len = 1;
+  currentPath[0] = start;
   const go = (): boolean => {
-    const current = currentPath.at(-1)!;
-    for (const a of adj[current]) {
-      if (a === currentPath[0]) {
-        // Found the loop
+    const current = currentPath[len - 1];
+    for (let j = 0; j < len - 1; j++) {
+      if (currentPath[j] === current) {
+        currentPath = currentPath.subarray(j, len - 1);
+        len = currentPath.length;
         return true;
       }
-      currentPath.push(a);
+    }
+    for (const a of adj[current]) {
+      currentPath[len++] = a;
       const foundLoop = go();
       if (foundLoop) return true;
-      currentPath.pop();
+      len -= 1;
     }
     return false;
   };
   go();
-  return currentPath;
+  return currentPath.subarray(0, len);
 }
 
-function topoSort(adj: number[][]): Result<number[], number[]> {
+function topoSort(adj: number[][]): Result<Uint32Array, Uint32Array> {
   const n = adj.length;
-  const indegree = adj.map(() => 0);
-  const queue: number[] = [];
-  const res: number[] = [];
+  const indegree = new Uint32Array(adj.length);
+
+  // + 1 to find the loop
+  const queue = new Uint32Array(adj.length + 1);
+
+  let queueStart = 0;
+  let queueEnd = 0;
 
   // Compute indegrees
   for (let i = 0; i < n; i++) {
@@ -117,16 +129,15 @@ function topoSort(adj: number[][]): Result<number[], number[]> {
   // Add all nodes with indegree 0
   // into the queue
   for (let i = 0; i < n; i++) {
-    if (indegree[i] === 0) queue.push(i);
+    if (indegree[i] === 0) queue[queueEnd++] = i;
   }
 
   // Kahn’s Algorithm
-  while (queue.length > 0) {
-    let top = queue.shift()!;
-    res.push(top);
+  while (queueStart < queueEnd) {
+    let top = queue[queueStart++];
     for (let next of adj[top]) {
       indegree[next]--;
-      if (indegree[next] === 0) queue.push(next);
+      if (indegree[next] === 0) queue[queueEnd++] = next;
     }
   }
 
@@ -135,12 +146,12 @@ function topoSort(adj: number[][]): Result<number[], number[]> {
       // There is a loop with `i` vertex
       return {
         isOk: false,
-        error: findLoop(adj, i),
+        error: findLoop(adj, i, queue),
       };
     }
   }
 
-  return { isOk: true, value: res };
+  return { isOk: true, value: queue.subarray(0, queueStart) };
 }
 
 export function safeCompile<T extends string>(
@@ -172,7 +183,9 @@ export function safeCompile<T extends string>(
   if (!topoRes.isOk) {
     return {
       isOk: false,
-      error: new RuleConflictError(topoRes.error.map((ind) => layers[ind])),
+      error: new RuleConflictError(
+        Array.from(topoRes.error, (ind) => layers[ind])
+      ),
     };
   }
 
