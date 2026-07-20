@@ -1,26 +1,55 @@
 {
+  "name": "get-z-index",
   "version": "1.2.0",
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "author": "andrewbeletskiy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whiteand/get-z-index.git"
+  },
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=10"
+  "main": "dist/index.js",
+  "module": "dist/get-z-index.esm.js",
+  "typings": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "start": "tsdx watch",
+    "dev": "tsdx dev",
     "build": "tsdx build",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
-    "size": "size-limit",
-    "analyze": "size-limit --why"
+    "test": "vitest .",
+    "lint": "oxlint .",
+    "format": "tsdx format",
+    "typecheck": "tsdx typecheck",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^12.1.0",
+    "@typescript/typescript6": "^6.0.2",
+    "@vitest/coverage-v8": "4.1.10",
+    "bunchee": "^6.12.0",
+    "jsdom": "^29.1.1",
+    "oxlint": "^1.74.0",
+    "size-limit": "^12.1.0",
+    "tsdx": "^2.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "tsdx lint"
+      "pre-commit": "npm run lint"
     }
   },
   "prettier": {
@@ -29,29 +58,13 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "get-z-index",
-  "author": "andrewbeletskiy",
-  "module": "dist/get-z-index.esm.js",
   "size-limit": [
-    {
-      "path": "dist/get-z-index.cjs.production.min.js",
-      "limit": "10 KB"
-    },
     {
       "path": "dist/get-z-index.esm.js",
       "limit": "10 KB"
     }
   ],
-  "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.10.1",
-    "husky": "^5.2.0",
-    "size-limit": "^4.10.1",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.1.0",
-    "typescript": "^5.5.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/whiteand/get-z-index.git"
+  "engines": {
+    "node": ">=10"
   }
 }

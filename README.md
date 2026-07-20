@@ -10,16 +10,16 @@ Lets assume that header should be above the page. Modal above the header and all
 
 ```javascript
 const RULES = [
-  ['page', 'header'],
-  ['header', 'modals'],
-  ['modals', 'notifications'],
+  ["page", "header"],
+  ["header", "modals"],
+  ["modals", "notifications"],
 ];
 ```
 
 While we have this `RULES` array we can create function `getZIndex` which will return z-index for each layer based on this rules.
 
 ```javascript
-import { compile } from 'get-z-index';
+import { compile } from "get-z-index";
 
 const getZIndex = compile(RULES);
 ```
@@ -27,10 +27,10 @@ const getZIndex = compile(RULES);
 And now we can use it:
 
 ```javascript
-getZIndex('page'); // => 0
-getZIndex('header'); // => 1
-getZIndex('modals'); // => 2
-getZIndex('notifications'); // => 3
+getZIndex("page"); // => 0
+getZIndex("header"); // => 1
+getZIndex("modals"); // => 2
+getZIndex("notifications"); // => 3
 ```
 
 Sometimes there is need to be able to show several modals on the screen and several notifications.
@@ -47,7 +47,7 @@ const MAX_NUMBER_DICT = {
 Lets create another version of `getZIndex` which will use this information:
 
 ```javascript
-import { compile } from 'get-z-index';
+import { compile } from "get-z-index";
 
 const getZIndex = compile(RULES, MAX_NUMBER_DICT);
 ```
@@ -55,12 +55,12 @@ const getZIndex = compile(RULES, MAX_NUMBER_DICT);
 Lets calculate all possible zIndices for all layers and items inside layer with usage of second parameter of `getZIndex` function - `index`.
 
 ```javascript
-getZIndex('page'); // => 0
-getZIndex('header'); // => 1
-getZIndex('modals'); // => 2
-getZIndex('modals', 1); // => 3, z-index for second modal above the first modal
-getZIndex('modals', 2); // => 4
-getZIndex('notifications'); // => 5
+getZIndex("page"); // => 0
+getZIndex("header"); // => 1
+getZIndex("modals"); // => 2
+getZIndex("modals", 1); // => 3, z-index for second modal above the first modal
+getZIndex("modals", 2); // => 4
+getZIndex("notifications"); // => 5
 ```
 
 Also it's possible that sometimes someone else code controls z-index of the component. For example modals are from some library. And inside the library we have z-index equal to 1000. We can define it with usage of the last parameter - `predefinedZIndices`.
@@ -68,22 +68,22 @@ Also it's possible that sometimes someone else code controls z-index of the comp
 ```javascript
 const getZIndex = compile(
   [
-    ['page', 'modal'],
-    ['modal', 'notification'],
-    ['notification', 'tooltips'],
+    ["page", "modal"],
+    ["modal", "notification"],
+    ["notification", "tooltips"],
   ],
   null,
-  { modal: 1000 }
+  { modal: 1000 },
 );
 ```
 
 And we can use it:
 
 ```javascript
-getZIndex('page'); // 0
-getZIndex('modal'); // 1000
-getZIndex('notification'); // 1001
-getZIndex('tooltips'); // 1002
+getZIndex("page"); // 0
+getZIndex("modal"); // 1000
+getZIndex("notification"); // 1001
+getZIndex("tooltips"); // 1002
 ```
 
 Pretty much it! Use and enjoy!
