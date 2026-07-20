@@ -186,7 +186,13 @@ describe('safeCompile', (it) => {
 
 describe('ZIndexProvider', (it) => {
   it('getSafe covers success, absent, and out-of-bounds branches', () => {
-    const provider = new ZIndexProvider({ a: 10, b: 20 }, { a: 2 });
+    const provider = new ZIndexProvider(
+      new Map([
+        ['a', 10],
+        ['b', 20],
+      ]),
+      new Map([['a' as 'a' | 'b', 2]])
+    );
 
     expect(provider.getSafe('a', undefined)).toEqual({
       isOk: true,
@@ -211,14 +217,26 @@ describe('ZIndexProvider', (it) => {
   });
 
   it('get returns value or throws the underlying error', () => {
-    const provider = new ZIndexProvider({ a: 3 }, { a: 1 });
+    const provider = new ZIndexProvider(
+      new Map([['a', 3]]),
+      new Map([['a', 1]])
+    );
     expect(provider.get('a', undefined)).toBe(3);
     expect(() => provider.get('a', 1)).toThrow(LayerIndexOutOfBoundsError);
   });
 
   it('getLayersDict returns a null-prototype copy', () => {
     const source = { a: 1, b: 2 };
-    const provider = new ZIndexProvider({ a: 1, b: 2 }, { a: 1, b: 1 });
+    const provider = new ZIndexProvider(
+      new Map([
+        ['a', 1],
+        ['b', 2],
+      ]),
+      new Map([
+        ['a', 1],
+        ['b', 1],
+      ])
+    );
     const dict = provider.getLayersDict();
 
     expect(dict).toEqual(source);
